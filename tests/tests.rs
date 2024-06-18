@@ -21,5 +21,23 @@ fn test_parse() {
             Exp::Atom(Atom::Number(10.0)),
         ]),
     ]);
-    assert_eq!(expected, parse(input));
+    assert_eq!(expected, parse(input).expect("Failed to parse input"));
+}
+
+#[test]
+fn test_eval_add() {
+    let env = standard_env();
+    let input = String::from("(+ 1 2 3)");
+    let parsed_exp = parse(input).expect("Failed to parse input");
+    let result = eval(parsed_exp, &env).expect("Failed to evaluate expression");
+    assert_eq!(result, Exp::Atom(Atom::Number(6.0)));
+}
+
+#[test]
+fn test_eval_subtract() {
+    let env = standard_env();
+    let input = String::from("(- 10 2 3)");
+    let parsed_exp = parse(input).expect("Failed to parse input");
+    let result = eval(parsed_exp, &env).expect("Failed to evaluate expression");
+    assert_eq!(result, Exp::Atom(Atom::Number(5.0)));
 }

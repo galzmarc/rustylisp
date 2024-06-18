@@ -23,6 +23,9 @@ impl Env {
             data: HashMap::new(),
         }
     }
+    fn get(&self, k: &str) -> Option<&Exp> {
+        self.data.get(k)
+    }
     fn insert(&mut self, k: String, v: Exp) {
         self.data.insert(k, v);
     }
@@ -30,33 +33,31 @@ impl Env {
 
 // Takes as input a string of characters; it adds spaces around each parenthesis,
 // and then calls split to get a list of tokens
-pub fn tokenize(str: String) -> Vec<String> {
-    let result = str
-        .replace("(", "( ")
-        .replace(")", " )")
+pub fn tokenize(exp: String) -> Vec<String> {
+    exp.replace("(", " ( ")
+        .replace(")", " ) ")
         .split_whitespace()
-        .map(|i| i.to_string())
-        .collect();
-    result
+        .map(|x| x.to_string())
+        .collect()
 }
 
-fn read_from_tokens(tokens: &mut Vec<String>) -> Exp {
+fn read_from_tokens(tokens: &mut Vec<String>) -> Result<Exp, String> {
     // Read an expression from a sequence of tokens
     if tokens.is_empty() {
-        panic!("Unexpected EOF.");
+        return Err("Unexpected EOF.".to_string());
     }
     let token = tokens.remove(0);
     if token == "(" {
         let mut list: Vec<Exp> = Vec::new();
         while tokens[0] != ")" {
-            list.push(read_from_tokens(tokens));
+            list.push(read_from_tokens(tokens)?);
         }
         tokens.remove(0); // pop off ')'
-        Exp::List(list)
+        Ok(Exp::List(list))
     } else if token == ")" {
         panic!("Unexpected ')'.");
     } else {
-        Exp::Atom(atom(token))
+        Ok(Exp::Atom(atom(token)))
     }
 }
 
@@ -68,7 +69,7 @@ fn atom(token: String) -> Atom {
     }
 }
 
-pub fn parse(input: String) -> Exp {
+pub fn parse(input: String) -> Result<Exp, String> {
     // Read a Scheme expression from a string
     read_from_tokens(&mut tokenize(input))
 }
@@ -76,13 +77,34 @@ pub fn parse(input: String) -> Exp {
 pub fn standard_env() -> Env {
     // An environment with some Scheme standard procedures
     let mut env = Env::new();
-    env.insert("+".to_string(), Exp::Func(|args: &[Exp]| {
-        add(args)
-    }));
-    env.insert("-".to_string(), Exp::Func(|args: &[Exp]| {
-        subtract(args)
-    }));
+    env.insert("+".to_string(), Exp::Func(|args: &[Exp]| add(args)));
+    env.insert("-".to_string(), Exp::Func(|args: &[Exp]| subtract(args)));
     env
+}
+
+pub fn eval(exp: Exp, env: &Env) -> Result<Exp, String> {
+    match exp {
+        Exp::Atom(Atom::Symbol(s)) => {
+            env.get(&s).cloned().ok_or_else(|| panic!("Undefined symbol: {}", s))
+        },
+        Exp::Atom(Atom::Number(_)) => Ok(exp),
+        Exp::List(list) => {
+            let first = &list[0];
+            if let Exp::Atom(Atom::Symbol(ref s)) = first {
+                if let Some(Exp::Func(f)) = env.get(s) {
+                    let args = list[1..].iter()
+                        .map(|x| eval(x.clone(), env))
+                        .collect::<Result<Vec<_>, _>>()?;
+                    return Ok(f(&args))
+                } else {
+                    panic!("Undefined function: {}", s);
+                }
+            } else {
+                panic!("Expected a symbol");
+            }
+        },
+        Exp::Func(_) => Ok(exp),
+    }
 }
 
 fn add(args: &[Exp]) -> Exp {
@@ -102,7 +124,7 @@ fn subtract(args: &[Exp]) -> Exp {
     } else {
         panic!("Expected a number")
     };
-    let result = args.iter().fold(first, |acc, arg| {
+    let result = args.iter().skip(1).fold(first, |acc, arg| {
         if let Exp::Atom(Atom::Number(num)) = arg {
             acc - num
         } else {
