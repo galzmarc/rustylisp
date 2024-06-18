@@ -1,6 +1,6 @@
 use std::env;
 
-use rustylisp::{eval, parse, standard_env};
+use rustylisp::*;
 
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();

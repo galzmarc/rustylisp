@@ -50,3 +50,12 @@ fn test_eval_multiply() {
     let result = eval(parsed_exp, &env).expect("Failed to evaluate expression");
     assert_eq!(result, Exp::Atom(Atom::Number(6.0)));
 }
+
+#[test]
+fn test_eval_divide() {
+    let env = standard_env();
+    let input = String::from("(/ 24 6 2)");
+    let parsed_exp = parse(input).expect("Failed to parse input");
+    let result = eval(parsed_exp, &env).expect("Failed to evaluate expression");
+    assert_eq!(result, Exp::Atom(Atom::Number(2.0)));
+}

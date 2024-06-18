@@ -99,11 +99,14 @@ pub fn parse(input: String) -> Result<Exp, String> {
 }
 
 pub fn standard_env() -> Env {
-    // An environment with some Scheme standard procedures
+    // An environment with some Lisp standard procedures
     let mut env = Env::new();
+    // Adding basic arithmetic operations
     env.insert("+".to_string(), Exp::Func(|args: &[Exp]| add(args)));
     env.insert("-".to_string(), Exp::Func(|args: &[Exp]| subtract(args)));
     env.insert("*".to_string(), Exp::Func(|args: &[Exp]| multiply(args)));
+    env.insert("/".to_string(), Exp::Func(|args: &[Exp]| divide(args)));
+
     env
 }
 
@@ -141,8 +144,8 @@ fn add(args: &[Exp]) -> Exp {
         }
     });
     Exp::Atom(Atom::Number(sum))
-}
-
+  }
+  
 fn subtract(args: &[Exp]) -> Exp {
     let first = if let Some(Exp::Atom(Atom::Number(n))) = args.iter().next() {
         *n
@@ -157,8 +160,8 @@ fn subtract(args: &[Exp]) -> Exp {
         }
     });
     Exp::Atom(Atom::Number(result))
-}
-
+  }
+  
 fn multiply(args: &[Exp]) -> Exp {
     let first = if let Some(Exp::Atom(Atom::Number(n))) = args.iter().next() {
         *n
@@ -173,4 +176,23 @@ fn multiply(args: &[Exp]) -> Exp {
         }
     });
     Exp::Atom(Atom::Number(product))
-}
+  }
+  
+fn divide(args: &[Exp]) -> Exp {
+    let first = if let Some(Exp::Atom(Atom::Number(n))) = args.iter().next() {
+        *n
+    } else {
+        panic!("Expected a number");
+    };
+    let quotient = args.iter().skip(1).fold(first, |acc, arg| {
+        if let Exp::Atom(Atom::Number(num)) = arg {
+            if *num == 0.0 {
+                panic!("Cannot divide by zero")
+            }
+            acc / num
+        } else {
+            panic!("Expected a number");
+        }
+    });
+    Exp::Atom(Atom::Number(quotient))
+  }
