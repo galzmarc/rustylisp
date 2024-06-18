@@ -26,5 +26,5 @@ fn main() {
             std::process::exit(1);
         },
     };
-    println!("{:?}", result);
+    println!("{}", result);
 }

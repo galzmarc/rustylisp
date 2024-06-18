@@ -41,3 +41,12 @@ fn test_eval_subtract() {
     let result = eval(parsed_exp, &env).expect("Failed to evaluate expression");
     assert_eq!(result, Exp::Atom(Atom::Number(5.0)));
 }
+
+#[test]
+fn test_eval_multiply() {
+    let env = standard_env();
+    let input = String::from("(* 1 2 3)");
+    let parsed_exp = parse(input).expect("Failed to parse input");
+    let result = eval(parsed_exp, &env).expect("Failed to evaluate expression");
+    assert_eq!(result, Exp::Atom(Atom::Number(6.0)));
+}

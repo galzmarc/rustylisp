@@ -1,3 +1,4 @@
+use std::fmt;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -6,12 +7,35 @@ pub enum Atom {
     Number(f64),
 }
 
+impl fmt::Display for Atom {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Atom::Symbol(s) => write!(f, "{}", s),
+            Atom::Number(n) => write!(f, "{}", n),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Exp {
     Atom(Atom),
     List(Vec<Exp>),
     Func(fn(&[Exp]) -> Exp),
 }
+
+impl fmt::Display for Exp {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Exp::Atom(atom) => write!(f, "{}", atom),
+            Exp::List(list) => {
+                let formatted_list: Vec<String> = list.iter().map(|exp| format!("{}", exp)).collect();
+                write!(f, "({})", formatted_list.join(" "))
+            }
+            Exp::Func(_) => write!(f, "<function>"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Env {
     data: HashMap<String, Exp>,
@@ -79,6 +103,7 @@ pub fn standard_env() -> Env {
     let mut env = Env::new();
     env.insert("+".to_string(), Exp::Func(|args: &[Exp]| add(args)));
     env.insert("-".to_string(), Exp::Func(|args: &[Exp]| subtract(args)));
+    env.insert("*".to_string(), Exp::Func(|args: &[Exp]| multiply(args)));
     env
 }
 
@@ -112,7 +137,7 @@ fn add(args: &[Exp]) -> Exp {
         if let Exp::Atom(Atom::Number(num)) = arg {
             acc + num
         } else {
-            panic!("Expected a number")
+            panic!("Expected a number");
         }
     });
     Exp::Atom(Atom::Number(sum))
@@ -122,14 +147,30 @@ fn subtract(args: &[Exp]) -> Exp {
     let first = if let Some(Exp::Atom(Atom::Number(n))) = args.iter().next() {
         *n
     } else {
-        panic!("Expected a number")
+        panic!("Expected a number");
     };
     let result = args.iter().skip(1).fold(first, |acc, arg| {
         if let Exp::Atom(Atom::Number(num)) = arg {
             acc - num
         } else {
-            panic!("Expected a number")
+            panic!("Expected a number");
         }
     });
     Exp::Atom(Atom::Number(result))
+}
+
+fn multiply(args: &[Exp]) -> Exp {
+    let first = if let Some(Exp::Atom(Atom::Number(n))) = args.iter().next() {
+        *n
+    } else {
+        panic!("Expected a number");
+    };
+    let product = args.iter().skip(1).fold(first, |acc, arg| {
+        if let Exp::Atom(Atom::Number(num)) = arg {
+            acc * num
+        } else {
+            panic!("Expected a number");
+        }
+    });
+    Exp::Atom(Atom::Number(product))
 }
