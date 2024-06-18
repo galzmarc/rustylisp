@@ -1,5 +1,5 @@
-use std::fmt;
 use std::collections::HashMap;
+use std::fmt;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Atom {
@@ -28,7 +28,8 @@ impl fmt::Display for Exp {
         match self {
             Exp::Atom(atom) => write!(f, "{}", atom),
             Exp::List(list) => {
-                let formatted_list: Vec<String> = list.iter().map(|exp| format!("{}", exp)).collect();
+                let formatted_list: Vec<String> =
+                    list.iter().map(|exp| format!("{}", exp)).collect();
                 write!(f, "({})", formatted_list.join(" "))
             }
             Exp::Func(_) => write!(f, "<function>"),
@@ -112,25 +113,27 @@ pub fn standard_env() -> Env {
 
 pub fn eval(exp: Exp, env: &Env) -> Result<Exp, String> {
     match exp {
-        Exp::Atom(Atom::Symbol(s)) => {
-            env.get(&s).cloned().ok_or_else(|| panic!("Undefined symbol: {}", s))
-        },
+        Exp::Atom(Atom::Symbol(s)) => env
+            .get(&s)
+            .cloned()
+            .ok_or_else(|| panic!("Undefined symbol: {}", s)),
         Exp::Atom(Atom::Number(_)) => Ok(exp),
         Exp::List(list) => {
             let first = &list[0];
             if let Exp::Atom(Atom::Symbol(ref s)) = first {
                 if let Some(Exp::Func(f)) = env.get(s) {
-                    let args = list[1..].iter()
+                    let args = list[1..]
+                        .iter()
                         .map(|x| eval(x.clone(), env))
                         .collect::<Result<Vec<_>, _>>()?;
-                    return Ok(f(&args))
+                    return Ok(f(&args));
                 } else {
                     panic!("Undefined function: {}", s);
                 }
             } else {
                 panic!("Expected a symbol");
             }
-        },
+        }
         Exp::Func(_) => Ok(exp),
     }
 }
@@ -144,8 +147,8 @@ fn add(args: &[Exp]) -> Exp {
         }
     });
     Exp::Atom(Atom::Number(sum))
-  }
-  
+}
+
 fn subtract(args: &[Exp]) -> Exp {
     let first = if let Some(Exp::Atom(Atom::Number(n))) = args.iter().next() {
         *n
@@ -160,8 +163,8 @@ fn subtract(args: &[Exp]) -> Exp {
         }
     });
     Exp::Atom(Atom::Number(result))
-  }
-  
+}
+
 fn multiply(args: &[Exp]) -> Exp {
     let first = if let Some(Exp::Atom(Atom::Number(n))) = args.iter().next() {
         *n
@@ -176,8 +179,8 @@ fn multiply(args: &[Exp]) -> Exp {
         }
     });
     Exp::Atom(Atom::Number(product))
-  }
-  
+}
+
 fn divide(args: &[Exp]) -> Exp {
     let first = if let Some(Exp::Atom(Atom::Number(n))) = args.iter().next() {
         *n
@@ -195,4 +198,4 @@ fn divide(args: &[Exp]) -> Exp {
         }
     });
     Exp::Atom(Atom::Number(quotient))
-  }
+}

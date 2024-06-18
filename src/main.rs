@@ -24,7 +24,7 @@ fn main() {
         Err(e) => {
             eprintln!("Error during evaluation: {}", e);
             std::process::exit(1);
-        },
+        }
     };
     println!("{}", result);
 }
