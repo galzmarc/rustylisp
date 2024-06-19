@@ -26,7 +26,7 @@ fn test_parse() {
 
 #[test]
 fn test_eval_add() {
-    let env = &standard_env();
+    let env = &mut standard_env();
     let input = String::from("(+ 1 2 3)");
     let result = parse_eval(input, env).expect("Failed to evaluate expression");
     assert_eq!(result, Exp::Atom(Atom::Number(6.0)));
@@ -34,7 +34,7 @@ fn test_eval_add() {
 
 #[test]
 fn test_eval_subtract() {
-    let env = &standard_env();
+    let env = &mut standard_env();
     let input = String::from("(- 10 2 3)");
     let result = parse_eval(input, env).expect("Failed to evaluate expression");
     assert_eq!(result, Exp::Atom(Atom::Number(5.0)));
@@ -42,7 +42,7 @@ fn test_eval_subtract() {
 
 #[test]
 fn test_eval_multiply() {
-    let env = &standard_env();
+    let env = &mut standard_env();
     let input = String::from("(* 1 2 3)");
     let result = parse_eval(input, env).expect("Failed to evaluate expression");
     assert_eq!(result, Exp::Atom(Atom::Number(6.0)));
@@ -50,8 +50,29 @@ fn test_eval_multiply() {
 
 #[test]
 fn test_eval_divide() {
-    let env = &standard_env();
+    let env = &mut standard_env();
     let input = String::from("(/ 24 6 2)");
     let result = parse_eval(input, env).expect("Failed to evaluate expression");
     assert_eq!(result, Exp::Atom(Atom::Number(2.0)));
+}
+
+#[test]
+fn test_boolean_literals() {
+    let env = &mut standard_env();
+    let input_true = String::from("true");
+    let input_false = String::from("false");
+
+    let result_true = parse_eval(input_true, env).expect("Failed to evaluate expression");
+    assert_eq!(result_true, Exp::Bool(true));
+
+    let result_false = parse_eval(input_false, env).expect("Failed to evaluate expression");
+    assert_eq!(result_false, Exp::Bool(false));
+}
+
+#[test]
+fn test_define() {
+    let env = &mut standard_env();
+    let input = String::from("(define r 10)");
+    let result = parse_eval(input, env).expect("Failed to evaluate expression");
+    assert_eq!(result, Exp::Atom(Atom::Number(10.0)));
 }
