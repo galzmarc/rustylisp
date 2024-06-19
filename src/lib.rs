@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 use std::fmt;
 
+use utils::{add, divide, multiply, subtract};
+mod utils;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Atom {
     Symbol(String),
@@ -48,17 +51,17 @@ impl Env {
             data: HashMap::new(),
         }
     }
-    fn get(&self, k: &str) -> Option<&Exp> {
-        self.data.get(k)
-    }
     fn insert(&mut self, k: String, v: Exp) {
         self.data.insert(k, v);
     }
+    fn get(&self, k: &str) -> Option<&Exp> {
+        self.data.get(k)
+    }
 }
 
-// Takes as input a string of characters; it adds spaces around each parenthesis,
-// and then calls split to get a list of tokens
 pub fn tokenize(exp: String) -> Vec<String> {
+    // Takes as input a string of characters; it adds spaces around each parenthesis,
+    // and then calls split to get a list of tokens
     exp.replace("(", " ( ")
         .replace(")", " ) ")
         .split_whitespace()
@@ -69,7 +72,7 @@ pub fn tokenize(exp: String) -> Vec<String> {
 fn read_from_tokens(tokens: &mut Vec<String>) -> Result<Exp, String> {
     // Read an expression from a sequence of tokens
     if tokens.is_empty() {
-        return Err("Unexpected EOF.".to_string());
+        return Err("No input provided. Please provide a Lisp expression.".to_string());
     }
     let token = tokens.remove(0);
     if token == "(" {
@@ -99,6 +102,18 @@ pub fn parse(input: String) -> Result<Exp, String> {
     read_from_tokens(&mut tokenize(input))
 }
 
+pub fn parse_eval(input: String, env: &Env) -> Result<Exp, String> {
+    let parsed_exp = match parse(input) {
+        Ok(exp) => exp,
+        Err(e) => {
+            eprintln!("Error during parsing: {}", e);
+            std::process::exit(1);
+        }
+    };
+    let eval_exp = eval(parsed_exp, &env)?;
+    Ok(eval_exp)
+}
+
 pub fn standard_env() -> Env {
     // An environment with some Lisp standard procedures
     let mut env = Env::new();
@@ -111,7 +126,7 @@ pub fn standard_env() -> Env {
     env
 }
 
-pub fn eval(exp: Exp, env: &Env) -> Result<Exp, String> {
+fn eval(exp: Exp, env: &Env) -> Result<Exp, String> {
     match exp {
         Exp::Atom(Atom::Symbol(s)) => env
             .get(&s)
@@ -136,66 +151,4 @@ pub fn eval(exp: Exp, env: &Env) -> Result<Exp, String> {
         }
         Exp::Func(_) => Ok(exp),
     }
-}
-
-fn add(args: &[Exp]) -> Exp {
-    let sum = args.iter().fold(0.0, |acc, arg| {
-        if let Exp::Atom(Atom::Number(num)) = arg {
-            acc + num
-        } else {
-            panic!("Expected a number");
-        }
-    });
-    Exp::Atom(Atom::Number(sum))
-}
-
-fn subtract(args: &[Exp]) -> Exp {
-    let first = if let Some(Exp::Atom(Atom::Number(n))) = args.iter().next() {
-        *n
-    } else {
-        panic!("Expected a number");
-    };
-    let result = args.iter().skip(1).fold(first, |acc, arg| {
-        if let Exp::Atom(Atom::Number(num)) = arg {
-            acc - num
-        } else {
-            panic!("Expected a number");
-        }
-    });
-    Exp::Atom(Atom::Number(result))
-}
-
-fn multiply(args: &[Exp]) -> Exp {
-    let first = if let Some(Exp::Atom(Atom::Number(n))) = args.iter().next() {
-        *n
-    } else {
-        panic!("Expected a number");
-    };
-    let product = args.iter().skip(1).fold(first, |acc, arg| {
-        if let Exp::Atom(Atom::Number(num)) = arg {
-            acc * num
-        } else {
-            panic!("Expected a number");
-        }
-    });
-    Exp::Atom(Atom::Number(product))
-}
-
-fn divide(args: &[Exp]) -> Exp {
-    let first = if let Some(Exp::Atom(Atom::Number(n))) = args.iter().next() {
-        *n
-    } else {
-        panic!("Expected a number");
-    };
-    let quotient = args.iter().skip(1).fold(first, |acc, arg| {
-        if let Exp::Atom(Atom::Number(num)) = arg {
-            if *num == 0.0 {
-                panic!("Cannot divide by zero")
-            }
-            acc / num
-        } else {
-            panic!("Expected a number");
-        }
-    });
-    Exp::Atom(Atom::Number(quotient))
 }

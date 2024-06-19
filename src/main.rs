@@ -1,30 +1,18 @@
-use std::env;
+use std::io;
 
 use rustylisp::*;
 
 fn main() {
-    let args: Vec<String> = env::args().skip(1).collect();
+    let env = &mut standard_env();
+    loop {
+        let mut expr = String::new();
+        io::stdin()
+            .read_line(&mut expr)
+            .expect("Failed to read line");
 
-    if args.is_empty() {
-        eprintln!("Error: No input provided. Please provide a Lisp expression.");
-        std::process::exit(1);
+        match parse_eval(expr, env) {
+            Ok(res) => println!("{}", res),
+            Err(e) => eprintln!("Error: {}", e),
+        };
     }
-
-    let env = standard_env();
-    let input = args.join(" ");
-    let parsed_exp = match parse(input) {
-        Ok(exp) => exp,
-        Err(e) => {
-            eprintln!("Error during parsing: {}", e);
-            std::process::exit(1);
-        }
-    };
-    let result = match eval(parsed_exp, &env) {
-        Ok(res) => res,
-        Err(e) => {
-            eprintln!("Error during evaluation: {}", e);
-            std::process::exit(1);
-        }
-    };
-    println!("{}", result);
 }
