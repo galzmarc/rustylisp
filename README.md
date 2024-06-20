@@ -32,6 +32,8 @@ square
 25.0
 > (square r)
 100.0
+> (if (< r 8) true false)
+false
 ```
 
 ### Contributing
