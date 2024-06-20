@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::f64::consts::PI;
 use std::fmt;
 
 use utils::{add, divide, multiply, subtract};
@@ -25,6 +26,11 @@ pub enum Exp {
     Atom(Atom),
     List(Vec<Exp>),
     Func(fn(&[Exp]) -> Exp),
+    FuncDef {
+        params: Vec<Exp>,
+        body: Vec<Exp>,
+        env: Env,
+    },
 }
 
 impl fmt::Display for Exp {
@@ -38,6 +44,7 @@ impl fmt::Display for Exp {
                 write!(f, "({})", formatted_list.join(" "))
             }
             Exp::Func(_) => write!(f, "<function>"),
+            Exp::FuncDef{..} => write!(f, "<function>"),
         }
     }
 }
@@ -56,7 +63,7 @@ impl Env {
     fn insert(&mut self, k: String, v: Exp) {
         self.data.insert(k, v);
     }
-    fn get(&self, k: &str) -> Option<&Exp> {
+    pub fn get(&self, k: &str) -> Option<&Exp> {
         self.data.get(k)
     }
 }
@@ -92,19 +99,19 @@ fn read_from_tokens(tokens: &mut Vec<String>) -> Result<Exp, String> {
 }
 
 fn atom(token: String) -> Exp {
-    // Numbers become numbers; every other token is a symbol
     match token.as_str() {
         "true" => Exp::Bool(true),
         "false" => Exp::Bool(false),
+        // Numbers become numbers; every other token is a symbol
         _ => match token.parse::<f64>() {
             Ok(num) => Exp::Atom(Atom::Number(num)),
             Err(_) => Exp::Atom(Atom::Symbol(token)),
-        }
+        },
     }
 }
 
 pub fn parse(input: String) -> Result<Exp, String> {
-    // Read a Scheme expression from a string
+    // Read a Lisp expression from a string
     read_from_tokens(&mut tokenize(input))
 }
 
@@ -128,7 +135,9 @@ pub fn standard_env() -> Env {
     env.insert("-".to_string(), Exp::Func(|args: &[Exp]| subtract(args)));
     env.insert("*".to_string(), Exp::Func(|args: &[Exp]| multiply(args)));
     env.insert("/".to_string(), Exp::Func(|args: &[Exp]| divide(args)));
-
+    // Adding pi
+    env.insert("pi".to_string(), Exp::Atom(Atom::Number(PI)));
+    
     env
 }
 
@@ -144,33 +153,76 @@ fn eval(exp: Exp, env: &mut Env) -> Result<Exp, String> {
             let first = &list[0];
             if let Exp::Atom(Atom::Symbol(ref s)) = first {
                 if s == "define" {
-                    if list.len() != 3 {
-                        return Err("define requires exactly two arguments".into());
+                    if list.len() < 3 {
+                        return Err("'define' requires at least two arguments".into());
                     }
-
-                    let var_name = match &list[1] {
-                        Exp::Atom(Atom::Symbol(name)) => name.clone(),
-                        _ => return Err("The first argument to define must be a symbol".into()),
-                    };
-
-                    let value = eval(list[2].clone(), env)?;
-                    env.insert(var_name, value.clone());
-                    Ok(value)
-                } else if let Some(Exp::Func(f)) = env.get(s) {
-                    // Clone the function to avoid borrowing `env` later
-                    let function = f.clone();
-                    let args: Result<Vec<Exp>, String> = list[1..]
-                        .iter()
-                        .map(|x| eval(x.clone(), env))
-                        .collect();
-                    Ok(function(&args?))
-                } else {
-                    Err(format!("Undefined function: {}", s))
+                    // Define a new function
+                    if let Exp::List(ref func) = list[1] {
+                        if let Exp::Atom(Atom::Symbol(ref func_name)) = func[0] {
+                            let params = func[1..].to_vec();
+                            let body = list[2..].to_vec();
+                            let lambda = Exp::FuncDef {
+                                params,
+                                body,
+                                env: env.clone(),
+                            };
+                            env.insert(func_name.clone(), lambda);
+                            return Ok(Exp::Atom(Atom::Symbol(func_name.clone())));
+                        }
+                    // Define a new variable
+                    } else if let Exp::Atom(Atom::Symbol(ref var_name)) = list[1] {
+                        let value = eval(list[2].clone(), env)?;
+                        env.insert(var_name.clone(), value.clone());
+                        return Ok(value);
+                    } else {
+                        return Err("Invalid define syntax".into());
+                    }
+                } else if s == "if" {
+                    if list.len() < 4 {
+                        return Err("'if' requires at least three arguments".into());
+                    }
+                    // Implement IF functionality
+                    // if <predicate> <consequent> <alternative>
+                    todo!();
+                } else if let Some(exp) = env.get(s) {
+                    if let Exp::Func(f) = exp {
+                        // Clone the function to avoid borrowing `env` later
+                        let function = f.clone();
+                        let args: Result<Vec<Exp>, String> = list[1..]
+                            .iter()
+                            .map(|x| eval(x.clone(), env))
+                            .collect();
+                        return Ok(function(&args?));
+                    } else if let Exp::FuncDef { params, body, env: closure_env } = exp {
+                        // Clone `env` to avoid borrowing later
+                        let env_clone = &mut env.clone();
+                        let args: Result<Vec<Exp>, String> = list[1..]
+                            .iter()
+                            .map(|x| eval(x.clone(), env_clone))
+                            .collect();
+                        let mut local_env = closure_env.clone();
+                        for (param, arg) in params.iter().zip(args?) {
+                            if let Exp::Atom(Atom::Symbol(param_name)) = param {
+                                local_env.insert(param_name.clone(), arg);
+                            } else {
+                                return Err("Invalid parameter name".into());
+                            }
+                        }
+                        let mut result = Exp::Bool(false);
+                        for exp in body {
+                            result = eval(exp.clone(), &mut local_env)?;
+                        }
+                        return Ok(result);
+                    }
                 }
+                return Err(format!("Undefined function: {}", s));
             } else {
                 Err("Expected a symbol".into())
             }
         }
         Exp::Func(_) => Ok(exp),
+        Exp::FuncDef { .. } => {
+            Err("Unexpected function definition".into())
+        }
     }
 }
