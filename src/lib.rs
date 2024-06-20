@@ -44,7 +44,7 @@ impl fmt::Display for Exp {
                 write!(f, "({})", formatted_list.join(" "))
             }
             Exp::Func(_) => write!(f, "<function>"),
-            Exp::FuncDef{..} => write!(f, "<function>"),
+            Exp::FuncDef { .. } => write!(f, "<function>"),
         }
     }
 }
@@ -138,11 +138,26 @@ pub fn standard_env() -> Env {
     // Adding pi
     env.insert("pi".to_string(), Exp::Atom(Atom::Number(PI)));
     // Adding comparison operators
-    env.insert("=".to_string(), Exp::Func(|args: &[Exp]| compare(args, "=")));
-    env.insert(">".to_string(), Exp::Func(|args: &[Exp]| compare(args, ">")));
-    env.insert("<".to_string(), Exp::Func(|args: &[Exp]| compare(args, "<")));
-    env.insert(">=".to_string(), Exp::Func(|args: &[Exp]| compare(args, ">=")));
-    env.insert("<=".to_string(), Exp::Func(|args: &[Exp]| compare(args, "<=")));
+    env.insert(
+        "=".to_string(),
+        Exp::Func(|args: &[Exp]| compare(args, "=")),
+    );
+    env.insert(
+        ">".to_string(),
+        Exp::Func(|args: &[Exp]| compare(args, ">")),
+    );
+    env.insert(
+        "<".to_string(),
+        Exp::Func(|args: &[Exp]| compare(args, "<")),
+    );
+    env.insert(
+        ">=".to_string(),
+        Exp::Func(|args: &[Exp]| compare(args, ">=")),
+    );
+    env.insert(
+        "<=".to_string(),
+        Exp::Func(|args: &[Exp]| compare(args, "<=")),
+    );
 
     env
 }
@@ -167,13 +182,15 @@ fn eval(exp: Exp, env: &mut Env) -> Result<Exp, String> {
                                 Exp::Func(f) => {
                                     // Clone the function to avoid borrowing `env` later
                                     let function = f.clone();
-                                    let args: Result<Vec<Exp>, String> = list[1..]
-                                        .iter()
-                                        .map(|x| eval(x.clone(), env))
-                                        .collect();
+                                    let args: Result<Vec<Exp>, String> =
+                                        list[1..].iter().map(|x| eval(x.clone(), env)).collect();
                                     Ok(function(&args?))
                                 }
-                                Exp::FuncDef { params, body, env: closure_env } => {
+                                Exp::FuncDef {
+                                    params,
+                                    body,
+                                    env: closure_env,
+                                } => {
                                     // Clone `env` to avoid borrowing later
                                     let env_clone = &mut env.clone();
                                     let args: Result<Vec<Exp>, String> = list[1..]
