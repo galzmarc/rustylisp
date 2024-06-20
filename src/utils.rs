@@ -28,12 +28,7 @@ pub fn subtract(args: &[Exp]) -> Exp {
 }
 
 pub fn multiply(args: &[Exp]) -> Exp {
-    let first = if let Some(Exp::Atom(Atom::Number(n))) = args.iter().next() {
-        *n
-    } else {
-        panic!("Expected a number");
-    };
-    let product = args.iter().skip(1).fold(first, |acc, arg| {
+    let product = args.iter().fold(1.0, |acc, arg| {
         if let Exp::Atom(Atom::Number(num)) = arg {
             acc * num
         } else {
