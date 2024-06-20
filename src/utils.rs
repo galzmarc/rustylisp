@@ -61,3 +61,32 @@ pub fn divide(args: &[Exp]) -> Exp {
     });
     Exp::Atom(Atom::Number(quotient))
 }
+
+pub fn compare(args: &[Exp], op: &str) -> Exp {
+    if args.len() != 2 {
+        panic!("Comparison operators require exactly two arguments");
+    }
+
+    let a = if let Exp::Atom(Atom::Number(n)) = args[0] {
+        n
+    } else {
+        panic!("Expected a number");
+    };
+
+    let b = if let Exp::Atom(Atom::Number(n)) = args[1] {
+        n
+    } else {
+        panic!("Expected a number");
+    };
+
+    let result = match op {
+        "=" => a == b,
+        ">" => a > b,
+        "<" => a < b,
+        ">=" => a >= b,
+        "<=" => a <= b,
+        _ => panic!("Unknown operator"),
+    };
+
+    Exp::Bool(result)
+}

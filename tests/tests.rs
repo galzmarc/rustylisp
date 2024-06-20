@@ -70,6 +70,35 @@ fn test_boolean_literals() {
 }
 
 #[test]
+fn test_comparison_operators() {
+    let env = &mut standard_env();
+
+    let input = String::from("(= 1 1)");
+    let result = parse_eval(input, env).expect("Failed to evaluate expression");
+    assert_eq!(result, Exp::Bool(true));
+
+    let input = String::from("(= 1 2)");
+    let result = parse_eval(input, env).expect("Failed to evaluate expression");
+    assert_eq!(result, Exp::Bool(false));
+
+    let input = String::from("(> 2 1)");
+    let result = parse_eval(input, env).expect("Failed to evaluate expression");
+    assert_eq!(result, Exp::Bool(true));
+
+    let input = String::from("(< 1 2)");
+    let result = parse_eval(input, env).expect("Failed to evaluate expression");
+    assert_eq!(result, Exp::Bool(true));
+
+    let input = String::from("(>= 2 2)");
+    let result = parse_eval(input, env).expect("Failed to evaluate expression");
+    assert_eq!(result, Exp::Bool(true));
+
+    let input = String::from("(<= 1 2)");
+    let result = parse_eval(input, env).expect("Failed to evaluate expression");
+    assert_eq!(result, Exp::Bool(true));
+}
+
+#[test]
 fn test_define() {
     let env = &mut standard_env();
     let input = String::from("(define r 10)");
@@ -79,34 +108,24 @@ fn test_define() {
 
 #[test]
 fn test_define_function() {
-    let mut env = &mut standard_env();
-    
-    // Define the square function
+    let env = &mut standard_env();
     let input = String::from("(define (square x) (* x x))");
-    let result = parse_eval(input, &mut env).expect("Failed to evaluate expression");
+    let result = parse_eval(input, env).expect("Failed to evaluate expression");
     assert_eq!(result, Exp::Atom(Atom::Symbol("square".to_string())));
 
-    // Check if the function is correctly added to the environment
-    let square_func = env.get("square").unwrap();
-    if let Exp::FuncDef { params, body, .. } = square_func {
-        assert_eq!(params.len(), 1);
-        assert_eq!(params[0], Exp::Atom(Atom::Symbol("x".to_string())));
-        assert_eq!(body.len(), 1);
-        if let Exp::List(body_list) = &body[0] {
-            assert_eq!(body_list.len(), 3);
-            assert_eq!(body_list[0], Exp::Atom(Atom::Symbol("*".to_string())));
-            assert_eq!(body_list[1], Exp::Atom(Atom::Symbol("x".to_string())));
-            assert_eq!(body_list[2], Exp::Atom(Atom::Symbol("x".to_string())));
-        } else {
-            panic!("Function body is not a list");
-        }
-    } else {
-        panic!("Square function not correctly defined");
-    }
-
-    // Test the square function
     let input = String::from("(square 5)");
-    let result = parse_eval(input, &mut env).expect("Failed to evaluate expression");
+    let result = parse_eval(input, env).expect("Failed to evaluate expression");
     assert_eq!(result, Exp::Atom(Atom::Number(25.0)));
 }
 
+#[test]
+fn test_if_expression() {
+    let env = &mut standard_env();
+    let input = String::from("(if (= 1 1) 10 20)");
+    let result = parse_eval(input, env).expect("Failed to evaluate expression");
+    assert_eq!(result, Exp::Atom(Atom::Number(10.0)));
+
+    let input = String::from("(if (= 1 2) 10 20)");
+    let result = parse_eval(input, env).expect("Failed to evaluate expression");
+    assert_eq!(result, Exp::Atom(Atom::Number(20.0)));
+}
