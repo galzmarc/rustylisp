@@ -197,10 +197,11 @@ fn eval(exp: Exp, env: &mut Env) -> Result<Exp, String> {
                                         .iter()
                                         .map(|x| eval(x.clone(), env_clone))
                                         .collect();
+                                    // Create a scoped environment for the function
                                     let mut local_env = closure_env.clone();
-                                    // We insert the function name in the scoped environment to support recursion
+                                    // We insert the function name in the scoped environment to allow for recursion
                                     local_env.insert(s.clone(), exp.clone());
-                                    //
+                                    
                                     for (param, arg) in params.iter().zip(args?) {
                                         if let Exp::Atom(Atom::Symbol(param_name)) = param {
                                             local_env.insert(param_name.clone(), arg);
