@@ -5,13 +5,17 @@ This project is a functional Lisp interpreter written in Rust, specifically targ
 ## Features
 
 - **REPL**: A Read-Eval-Print Loop for interactive programming.
-- **Parser**: Parses Lisp expressions into abstract syntax trees.
+- **Parser**: Parses Scheme expressions into abstract syntax trees.
 - **Evaluator**: Evaluates expressions according to Scheme semantics.
 - **Environment Handling**: Manages variable scope and function definitions.
-- **Arithmetic Operations**: Supports basic arithmetic operations like addition, subtraction, multiplication, and division.
-- **Function Definitions**: Allows user-defined functions with support for recursion.
+
+- **Numbers**: Supports integers and floating point numbers, with pi being defined in the standard environment.
 - **Boolean Values**: Supports boolean values and operations.
-- **Unit Testing**: Comprehensive tests to ensure functionality and reliability.
+- **Arithmetic Operations**: Supports basic arithmetic operations (+, -, *, /).
+- **Comparison operations**: Supports comparison operators (>, <, =, >=, <=)
+- **Variable Definitions**: Allows user-define variables
+- **Function Definitions**: Allows user-defined functions with support for recursion.
+- **Conditional statements**: Supports the evaluation of 'if' statements
 
 ## Usage
 
@@ -38,7 +42,12 @@ circle-area
 314.1592653589793
 > (if (< r 8) true false)
 false
+> (define fact (n) (if (<= n 1) 1 (* n (fact (- n 1)))))
+fact
+> (fact 5)
+120
 ```
+
 
 ### Contributing
 
