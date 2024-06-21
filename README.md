@@ -32,6 +32,10 @@ square
 25.0
 > (square r)
 100.0
+> (define (circle-area r) (* pi (* r r)))
+circle-area
+> (circle-area (+ 5 5))
+314.1592653589793
 > (if (< r 8) true false)
 false
 ```
