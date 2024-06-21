@@ -4,18 +4,23 @@ This project is a functional Lisp interpreter written in Rust, specifically targ
 
 ## Features
 
-- **REPL**: A Read-Eval-Print Loop for interactive programming.
-- **Parser**: Parses Scheme expressions into abstract syntax trees.
-- **Evaluator**: Evaluates expressions according to Scheme semantics.
-- **Environment Handling**: Manages variable scope and function definitions.
+<ul style="margin-top: 0px; margin-bottom: 0px;">
+  <li><strong>REPL</strong>: A Read-Eval-Print Loop for interactive programming.</li>
+  <li><strong>Parser</strong>: Parses Scheme expressions into abstract syntax trees.</li>
+  <li><strong>Evaluator</strong>: Evaluates expressions according to Scheme semantics.</li>
+  <li><strong>Environment Handling</strong>: Manages variable scope and function definitions.</li>
+</ul>
 
-- **Numbers**: Supports integers and floating point numbers, with pi being defined in the standard environment.
-- **Boolean Values**: Supports boolean values and operations.
-- **Arithmetic Operations**: Supports basic arithmetic operations (+, -, *, /).
-- **Comparison operations**: Supports comparison operators (>, <, =, >=, <=)
-- **Variable Definitions**: Allows user-define variables
-- **Function Definitions**: Allows user-defined functions with support for recursion.
-- **Conditional statements**: Supports the evaluation of 'if' statements
+<ul style="margin-top: 0px; margin-bottom: 0px;">
+  <li><strong>Numbers</strong>: Supports integers and floating point numbers, with pi being defined in the standard environment.</li>
+  <li><strong>Boolean Values</strong>: Supports boolean values and operations.</li>
+  <li><strong>Arithmetic Operations</strong>: Supports basic arithmetic operations (+, -, *, /).</li>
+  <li><strong>Comparison operations</strong>: Supports comparison operators (>, <, =, >=, <=).</li>
+  <li><strong>Variable Definitions</strong>: Allows user-defined variables.</li>
+  <li><strong>Function Definitions</strong>: Allows user-defined functions with support for recursion.</li>
+  <li><strong>Conditional statements</strong>: Supports the evaluation of 'if' statements.</li>
+</ul>
+
 
 ## Usage
 
