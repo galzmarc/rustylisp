@@ -262,7 +262,7 @@ fn eval_define(list: &[Exp], env: &mut Env) -> Result<Exp, String> {
 
 fn eval_if(list: &[Exp], env: &mut Env) -> Result<Exp, String> {
     if list.len() < 4 {
-        return Err("'define' requires at least two arguments".into());
+        return Err("'if' requires at least three arguments".into());
     }
     let condition = eval(list[1].clone(), env)?;
     match condition {
